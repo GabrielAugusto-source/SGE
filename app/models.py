@@ -34,3 +34,10 @@ class Product(Base):
 
     category = relationship("Category", back_populates="products")
     supplier = relationship("Supplier", back_populates="products")
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, nullable=False, index=True)
+    hashed_password = Column(String, nullable=False)

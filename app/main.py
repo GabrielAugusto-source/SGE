@@ -3,6 +3,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+
+from app import auth
 from . import crud, models, schemas
 from .database import get_db, engine
 
@@ -14,6 +16,23 @@ app = FastAPI(title="SGE - Sistema de Gerenciamento de Estoque", version="1.0.0"
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+
+@app.post("/token", response_model=schemas.Token)
+def login_for_access_token(user_data: schemas.UserCreate, db:Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == user_data.username).first()
+    if not user or not auth.verify_password(user_data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Nome ou Senha incorretos")
+    access_token = auth.create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/setup-user")
+def setup_user(user: schemas.UserCreate, db : Session = Depends(get_db)):
+    hashed_password = auth.hash_password(user.password)
+    db_user = models.User(username=user.username, hashed_password=hashed_password)
+    db.add(db_user)
+    db.commit()
+    return {"message": "Usuário criado com sucesso"}
 
 
 
