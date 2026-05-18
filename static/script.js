@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSubmit = document.getElementById('btn-submit');
     const productIdInput = document.getElementById('product-id');
 
-    // 1. CARREGAR PRODUTOS (GET)
     async function loadProducts() {
         try {
             const response = await fetch('/products/');
@@ -19,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td>${prod.quantity}</td>
                         <td>R$ ${prod.price.toFixed(2)}</td>
                         <td>
-                            <button class="btn-edit" onclick="prepareEdit(${JSON.stringify(prod).replace(/"/g, '&quot;')})">✏️</button>
-                            <button class="btn-delete" onclick="deleteProduct(${prod.id})">🗑️</button>
+                            <button class="btn-action btn-edit" onclick="prepareEdit(${JSON.stringify(prod).replace(/"/g, '&quot;')})">✎</button>
+                            <button class="btn-action btn-delete" onclick="deleteProduct(${prod.id})">✖</button>
                         </td>
                     </tr>
                 `;
@@ -31,11 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 2. SALVAR OU ATUALIZAR PRODUTO (POST ou PUT)
     productForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-
-        const id = productIdInput.value; // Verifica se há um ID para editar
+        const id = productIdInput.value;
         const data = {
             name: document.getElementById('name').value,
             quantity: parseInt(document.getElementById('quantity').value),
@@ -47,14 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             let response;
             if (id) {
-                // MODO EDIÇÃO: Usa PUT
                 response = await fetch(`/products/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
             } else {
-                // MODO CRIAÇÃO: Usa POST
                 response = await fetch('/products/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -65,8 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 Swal.fire('Sucesso!', 'Operação realizada com sucesso!', 'success');
                 productForm.reset();
-                productIdInput.value = ''; // Limpa o ID
-                btnSubmit.innerText = 'Salvar Produto'; // Volta o botão ao normal
+                productIdInput.value = '';
+                btnSubmit.innerText = 'Salvar Produto';
                 loadProducts();
             } else {
                 Swal.fire('Erro!', 'Verifique os IDs de Categoria e Fornecedor.', 'error');
@@ -76,24 +71,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 3. PREPARAR EDIÇÃO (Preenche o formulário)
     window.prepareEdit = (product) => {
         document.getElementById('name').value = product.name;
         document.getElementById('quantity').value = product.quantity;
         document.getElementById('price').value = product.price;
         document.getElementById('category_id').value = product.category_id;
         document.getElementById('supplier_id').value = product.supplier_id;
-        
-        productIdInput.value = product.id; // Guarda o ID para o PUT
-        btnSubmit.innerText = 'Atualizar Produto'; // Muda o texto do botão
-        window.scrollTo(0, 0); // Sobe a página para o formulário
+        productIdInput.value = product.id;
+        btnSubmit.innerText = 'Atualizar Produto';
+        window.scrollTo(0, 0);
     };
 
-    // 4. DELETAR PRODUTO (DELETE)
     window.deleteProduct = async (id) => {
         Swal.fire({
             title: 'Tem certeza?',
-            text: "O produto será removido permanentemente!",
+            text: "O produto será removido permanentamente!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
